@@ -8,32 +8,21 @@ public class triangle {
 	        int first = triangle.get(0).get(0);//第一个数
 	        if(triangle.size()==1)
 	            return first;
-	        //不需要O(n)的辅助空间，只需要最底层长度大小的辅助空间
-	      
+	       int[] total=new int[triangle.size()];
+	       int row=triangle.size()-1;
+	       for(int i=0;i<triangle.get(row).size();i++){
+	    	   total[i]=triangle.get(row).get(i);
+	       }//初始化为最后一行的值
+	       for(int i=row-1;i>=0;i--){
+	    	   for(int j=0;j<triangle.get(i).size();j++){
+	    		   total[j]=triangle.get(i).get(j)+Math.min(total[j], total[j+1]);//从下往上
+	    	   }
+	       }
+	       return total[0];
 	        
 	        
 	        
-	        
-	        int maxSize= triangle.get(triangle.size()-1).size();
-	        int[] a = new int[maxSize];
-	        a[0] = first;
-	        int min = Integer.MAX_VALUE;
-	        //遍历triangle
-	        for(int i = 1;i<triangle.size();i++){
-	            ArrayList<Integer> list = triangle.get(i);
-	            int temp = a[0];
-	            for(int j = 0;j<list.size();j++){
-	                int minCost = j==0||j+1==list.size()?temp:Math.min(temp, a[j]);
-	                temp = a[j];
-	                a[j] = list.get(j)+minCost;
-	                if(i+1==triangle.size()){
-	                    //最后一层
-	                    if(a[j]<min)
-	                        min = a[j];
-	                }
-	            }
-	        }
-	        return min;
+	     
 	    }
 	 public static void main(String[] args) {
 		 ArrayList<ArrayList<Integer>> arr=new ArrayList<ArrayList<Integer>>();
