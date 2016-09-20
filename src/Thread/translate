@@ -1,5 +1,5 @@
-若在继续所有参与线程之前更新共享状态，此屏障操作很有用。比如：在某种需求中，一个大型的任务，常常需要分配好多子任务去执行，只有当所有子任务都
-执行完成时候，才能执行主任务，这时候，就可以选择 CyclicBarrier。
+若在继续所有参与线程之前更新共享状态，此屏障操作很有用。比如：在某种需求中，一个大型的任务，常常需要分配好多子任务去执行，只有
+当所有子任务都执行完成时候，才能执行主任务，这时候，就可以选择 CyclicBarrier。
 
 CountDownLatch如何工作
  
@@ -7,32 +7,36 @@ CountDownLatch.java类中定义的构造函数：
 //Constructs a CountDownLatch initialized with the given count.
 public void CountDownLatch(int count) {...}
  
-构造器中的计数值（count）实际上就是闭锁需要等待的线程数量。这个值只能被设置一次，而且CountDownLatch没有提供任何机制去重新设置这个计数值。
- 
-与CountDownLatch的第一次交互是主线程等待其他线程。主线程必须在启动其他线程后立即调用CountDownLatch.await()方法。这样主线程的操作就会在这个方法上阻塞，直到其他线程完成各自的任务。
- 
-其他N 个线程必须引用闭锁对象，因为他们需要通知CountDownLatch对象，他们已经完成了各自的任务。这种通知机制是通过CountDownLatch.countDown()方法来完成的；每调用一次这个方法，在构造
-函数中初
+构造器中的计数值（count）实际上就是闭锁需要等待的线程数量。这个值只能被设置一次，而且CountDownLatch没有提供任何机制去重新设置这
+个计数值。与CountDownLatch的第一次交互是主线程等待其他线程。主线程必须在启动其他线程后立即调用CountDownLatch.await()方法。
+这样主线程的操作就会在这个方法上阻塞，直到其他线程完成各自的任务。其他N 个线程必须引用闭锁对象，因为他们需要通知CountDownLatch
+对象，他们已经完成了各自的任务。这种通知机制是通过CountDownLatch.countDown()方法来完成的；每调用一次这个方法，在构造函数中初
 始化的count值就减1。所以当N个线程都调用了这个方法，count的值等于0，然后主线程就能通过await()方法，恢复执行自己的任务。
 
 在实时系统中的使用场景
  
-1.实现最大的并行性：有时我们想同时启动多个线程，实现最大程度的并行性。例如，我们想测试一个单例类。如果我们创建一个初始计数为1的CountDownLatch，并让所有线程都在这个锁上等待，那么我们可以很轻松地完成测试。我们只需调用 一次countDown()方法就可以让所有的等待线程同时恢复执行。
+1.实现最大的并行性：有时我们想同时启动多个线程，实现最大程度的并行性。例如，我们想测试一个单例类。如果我们创建一个初始计数为1的
+CountDownLatch，并让所有线程都在这个锁上等待，那么我们可以很轻松地完成测试。我们只需调用 一次countDown()方法就可以让所有的等待
+线程同时恢复执行。
 2.开始执行前等待n个线程完成各自任务：例如应用程序启动类要确保在处理用户请求前，所有N个外部系统已经启动和运行了。
 3.死锁检测：一个非常方便的使用场景是，你可以使用n个线程访问共享资源，在每次测试阶段的线程数目是不同的，并尝试产生死锁。
 
-CountDownLatch和CyclicBarrier本质是一样的,都是在每个Thread 设置 CountDownLatch或CyclicBarrier 的屏障点point， 每个Thread 计入的Condition 中队列， 执行到屏障点point时候，回调 CountDownLatch或CyclicBarrier 的await方法，在Condition 中队列遍历是否所有的Thread 都已经执行到屏障点point。但是并没有释放Thread ，Thread 一致是运行状态（可以理解成时等待其他Thread全部完成屏障点point）。
- 
+CountDownLatch和CyclicBarrier本质是一样的,都是在每个Thread 设置 CountDownLatch或CyclicBarrier 的屏障点point， 每个Thread 计入
+的Condition 中队列， 执行到屏障点point时候，回调 CountDownLatch或CyclicBarrier 的await方法，在Condition 中队列遍历是否所有的
+Thread 都已经执行到屏障点point。但是并没有释放Thread ，Thread 一致是运行状态（可以理解成时等待其他Thread全部完成屏障点point）。
 区别是：
-每个Thread 到达 CountDownLatch的屏障点point 可以调用 countDown（）计数-1，到全部为计数0的时候，全部其他Thread通过，继续执行或结束。
- 
-所有到达 CyclicBarrier 的屏障点point 时候，该屏障点point 结束，继续执行。如果不能全部到达（中断、失败或者超时等原因），设置 BrokenBarrierException引起所有调用await方法的“Thread”全部报错，全部要么全不 (all-or-none) 的破坏模式。
+每个Thread 到达 CountDownLatch的屏障点point 可以调用 countDown（）计数-1，到全部为计数0的时候，全部其他Thread通过，继续执行或
+结束。
+所有到达 CyclicBarrier 的屏障点point 时候，该屏障点point 结束，继续执行。如果不能全部到达（中断、失败或者超时等原因），设置 
+BrokenBarrierException引起所有调用await方法的“Thread”全部报错，全部要么全不 (all-or-none) 的破坏模式。
  
 reset也是抛出BrokenBarrierException。
 
 
 
 
-Mutex是一把钥匙，一个人拿了就可进入一个房间，出来的时候把钥匙交给队列的第一个。一般的用法是用于串行化对critical section代码的访问，保证这段代码不会被并行的运行。
+Mutex是一把钥匙，一个人拿了就可进入一个房间，出来的时候把钥匙交给队列的第一个。一般的用法是用于串行化对critical section代码的
+访问，保证这段代码不会被并行的运行。
 
-Semaphore是一件可以容纳N人的房间，如果人不满就可以进去，如果人满了，就要等待有人出来。对于N=1的情况，称为binary semaphore。一般的用法是，用于限制对于某一资源的同时访问。
+Semaphore是一件可以容纳N人的房间，如果人不满就可以进去，如果人满了，就要等待有人出来。对于N=1的情况，称为binary semaphore。
+一般的用法是，用于限制对于某一资源的同时访问。
